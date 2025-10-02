@@ -1,38 +1,29 @@
-import React, { useState, useCallback } from 'react';
+
+import React from 'react';
 import type { NutritionPreferences, NutritionPlan } from '../types';
-import { generateNutritionPlan } from '../services/geminiService';
 import Loader from './Loader';
 import NutritionForm from './NutritionForm';
 import NutritionPlanDisplay from './NutritionPlanDisplay';
 
-const NutritionGuide: React.FC = () => {
-  const [preferences, setPreferences] = useState<NutritionPreferences | null>(null);
-  const [nutritionPlan, setNutritionPlan] = useState<NutritionPlan | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
+interface NutritionGuideProps {
+  preferences: NutritionPreferences | null;
+  plan: NutritionPlan | null;
+  isLoading: boolean;
+  error: string | null;
+  isOffline: boolean;
+  onSubmit: (data: NutritionPreferences) => void;
+  onReset: () => void;
+}
 
-  const handleFormSubmit = useCallback(async (data: NutritionPreferences) => {
-    setIsLoading(true);
-    setError(null);
-    setNutritionPlan(null);
-    try {
-      const plan = await generateNutritionPlan(data);
-      setPreferences(data);
-      setNutritionPlan(plan);
-    } catch (err) {
-      console.error(err);
-      setError('Failed to generate nutrition plan. Please try again later.');
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  const handleReset = useCallback(() => {
-    setNutritionPlan(null);
-    setPreferences(null);
-    setError(null);
-  }, []);
-
+const NutritionGuide: React.FC<NutritionGuideProps> = ({
+  preferences,
+  plan,
+  isLoading,
+  error,
+  isOffline,
+  onSubmit,
+  onReset,
+}) => {
   const renderContent = () => {
     if (isLoading) {
       return <Loader />;
@@ -42,7 +33,7 @@ const NutritionGuide: React.FC = () => {
         <div role="alert" className="text-center p-8 bg-red-900/20 border border-red-500 rounded-lg">
           <p className="text-red-300 text-lg">{error}</p>
           <button
-            onClick={handleReset}
+            onClick={onReset}
             className="mt-4 px-6 py-2 bg-indigo-600 hover:bg-indigo-700 rounded-md text-white font-semibold transition-colors"
           >
             Try Again
@@ -50,11 +41,11 @@ const NutritionGuide: React.FC = () => {
         </div>
       );
     }
-    if (nutritionPlan && preferences) {
-      return <NutritionPlanDisplay plan={nutritionPlan} preferences={preferences} onReset={handleReset} />;
+    if (plan && preferences) {
+      return <NutritionPlanDisplay plan={plan} preferences={preferences} onReset={onReset} />;
     }
-    return <NutritionForm onSubmit={handleFormSubmit} isLoading={isLoading} />;
-  }
+    return <NutritionForm onSubmit={onSubmit} isLoading={isLoading} isOffline={isOffline} />;
+  };
 
   return <>{renderContent()}</>;
 };

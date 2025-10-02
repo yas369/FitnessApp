@@ -1,7 +1,9 @@
+
 import React, { useState, useRef, useCallback } from 'react';
 import { analyzeExerciseTechnique } from '../services/geminiService';
 import CameraIcon from './icons/CameraIcon';
 import SparklesIcon from './icons/SparklesIcon';
+import OfflineIcon from './icons/OfflineIcon';
 
 const EXERCISES = [
   { key: 'squat', label: 'Squat' },
@@ -11,7 +13,11 @@ const EXERCISES = [
   { key: 'lunges', label: 'Lunges' },
 ];
 
-const TechniqueAnalyzer: React.FC = () => {
+interface TechniqueAnalyzerProps {
+  isOffline: boolean;
+}
+
+const TechniqueAnalyzer: React.FC<TechniqueAnalyzerProps> = ({ isOffline }) => {
   const [selectedExercise, setSelectedExercise] = useState<string>(EXERCISES[0].key);
   const [isCameraOn, setIsCameraOn] = useState<boolean>(false);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
@@ -40,13 +46,11 @@ const TechniqueAnalyzer: React.FC = () => {
 
     let stream: MediaStream | null = null;
     try {
-      // First, try to get the user-facing camera
       stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: 'user' },
       });
     } catch (err) {
       console.warn("Could not get user-facing camera, trying any camera...", err);
-      // If that fails, try getting any available video device
       try {
         stream = await navigator.mediaDevices.getUserMedia({ video: true });
       } catch (finalErr) {
@@ -61,11 +65,10 @@ const TechniqueAnalyzer: React.FC = () => {
         }
         
         setError(errorMessage);
-        return; // Exit the function if no camera can be accessed
+        return;
       }
     }
     
-    // If we successfully got a stream
     if (stream) {
       streamRef.current = stream;
       if (videoRef.current) {
@@ -115,8 +118,18 @@ const TechniqueAnalyzer: React.FC = () => {
     setIsLoading(false);
     setError(null);
   };
-
+  
   const renderContent = () => {
+    if (isOffline) {
+      return (
+        <div className="text-center p-8 space-y-4 flex flex-col items-center">
+            <OfflineIcon className="w-16 h-16 text-indigo-400/50" />
+            <h3 className="text-2xl font-bold text-white">Feature Unavailable Offline</h3>
+            <p className="text-slate-400 max-w-md">The Technique Analyzer requires an active internet connection to communicate with the AI coach. Please reconnect to use this feature.</p>
+        </div>
+      );
+    }
+
     if (isLoading) {
       return (
         <div role="status" className="text-center p-8">
@@ -142,8 +155,7 @@ const TechniqueAnalyzer: React.FC = () => {
         return (
             <section aria-labelledby="analysis-heading">
                 <h3 id="analysis-heading" className="text-2xl font-bold text-white mb-4">Technique Analysis</h3>
-                <div className="bg-slate-700/50 p-6 rounded-lg whitespace-pre-wrap text-slate-300 leading-relaxed font-mono">
-                    {analysis}
+                <div className="bg-slate-700/50 p-6 rounded-lg whitespace-pre-wrap text-slate-300 leading-relaxed font-mono custom-scrollbar overflow-x-auto" dangerouslySetInnerHTML={{ __html: analysis.replace(/### (.*?)\n/g, '<h4 class="text-lg font-bold text-white mt-4 mb-2">$1</h4>').replace(/\n/g, '<br />') }}>
                 </div>
                 <div className="text-center mt-6">
                     <button onClick={reset} className="text-white bg-indigo-600 hover:bg-indigo-700 font-bold rounded-lg text-lg px-8 py-3 text-center transition-all duration-300">
@@ -191,8 +203,11 @@ const TechniqueAnalyzer: React.FC = () => {
 
     return (
         <div className="text-center space-y-6">
+            <div className="mx-auto bg-slate-700/50 w-20 h-20 rounded-2xl flex items-center justify-center border-2 border-indigo-500/30">
+                <CameraIcon className="w-10 h-10 text-indigo-400" />
+            </div>
             <h2 className="text-3xl md:text-4xl font-extrabold text-white">Get Instant Feedback</h2>
-            <p className="mt-2 text-slate-400 text-lg max-w-2xl mx-auto">Select an exercise, record your form, and let our AI coach help you improve.</p>
+            <p className="mt-2 text-slate-400 text-lg max-w-2xl mx-auto">Select an exercise, enable your camera, and let our AI coach help you improve.</p>
             <div className="max-w-sm mx-auto">
                 <label htmlFor="exercise" className="block text-sm font-medium text-slate-300 mb-2">Select Exercise</label>
                 <select 

@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback } from 'react';
 import type { WearableData } from '../types';
 import { fetchWearableData } from '../services/wearableService';
@@ -5,6 +6,11 @@ import StepsIcon from './icons/StepsIcon';
 import HeartRateIcon from './icons/HeartRateIcon';
 import SleepIcon from './icons/SleepIcon';
 import FireIcon from './icons/FireIcon';
+import OfflineIcon from './icons/OfflineIcon';
+
+interface DashboardProps {
+  isOffline: boolean;
+}
 
 const StatCard: React.FC<{ label: string, value: string, subValue?: string, icon: React.ReactNode, children?: React.ReactNode }> = ({ label, value, subValue, icon, children }) => (
     <div className="bg-slate-800/50 p-4 rounded-lg border border-slate-700 flex flex-col justify-between h-full">
@@ -30,7 +36,7 @@ const ProgressBar: React.FC<{ value: number, max: number }> = ({ value, max }) =
 };
 
 
-const Dashboard: React.FC = () => {
+const Dashboard: React.FC<DashboardProps> = ({ isOffline }) => {
     const [isConnected, setIsConnected] = useState<boolean>(false);
     const [data, setData] = useState<WearableData | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -56,6 +62,16 @@ const Dashboard: React.FC = () => {
         setData(null);
     }, []);
 
+    if (isOffline && !isConnected) {
+        return (
+            <div className="max-w-4xl mx-auto bg-slate-800/50 rounded-2xl shadow-lg p-10 border border-slate-700 text-center flex flex-col items-center">
+                <OfflineIcon className="w-16 h-16 text-indigo-400/50 mb-4" />
+                <h2 className="text-3xl md:text-4xl font-extrabold text-white">Feature Unavailable Offline</h2>
+                <p className="mt-2 text-slate-400 text-lg max-w-xl mx-auto">Connecting to your wearable device requires an active internet connection. Please reconnect to sync your data.</p>
+            </div>
+        );
+    }
+    
     if (!isConnected) {
         return (
             <div className="max-w-4xl mx-auto bg-slate-800/50 rounded-2xl shadow-lg p-10 border border-slate-700 text-center flex flex-col items-center">
@@ -63,8 +79,8 @@ const Dashboard: React.FC = () => {
                 <p className="mt-2 text-slate-400 text-lg max-w-xl mx-auto">Connect your wearable device to automatically sync your daily activity, sleep, and heart rate for a complete overview of your health.</p>
                 <button 
                     onClick={handleConnect} 
-                    disabled={isLoading}
-                    className="mt-8 flex justify-center items-center text-white bg-indigo-600 hover:bg-indigo-700 focus:ring-4 focus:ring-indigo-500/50 font-bold rounded-lg text-lg px-8 py-3.5 text-center disabled:bg-indigo-900 disabled:cursor-not-allowed transition-all duration-300"
+                    disabled={isLoading || isOffline}
+                    className="mt-8 flex justify-center items-center text-white bg-indigo-600 hover:bg-indigo-700 focus:ring-4 focus:ring-indigo-500/50 font-bold rounded-lg text-lg px-8 py-3.5 text-center disabled:bg-indigo-800 disabled:cursor-not-allowed transition-all duration-300"
                 >
                     {isLoading ? 'Connecting...' : 'Connect Wearable'}
                 </button>

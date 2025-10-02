@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import type { NutritionPlan, NutritionPreferences, Meal } from '../types';
 import GoalIcon from './icons/GoalIcon';
@@ -20,7 +21,7 @@ const StatCard: React.FC<{ label: string, value: string, icon: React.ReactNode }
 );
 
 const MealCard: React.FC<{ meal: Meal }> = ({ meal }) => (
-    <div className="bg-slate-700/40 p-4 rounded-lg">
+    <div className="bg-slate-700/40 p-4 rounded-lg border border-slate-700/50 h-full">
         <div className="flex justify-between items-start">
             <h4 className="font-bold text-white text-lg">{meal.name}</h4>
             <span className="text-sm font-semibold text-indigo-300 bg-indigo-500/10 px-2 py-1 rounded-full">{meal.calories}</span>
@@ -54,16 +55,16 @@ const NutritionPlanDisplay: React.FC<NutritionPlanDisplayProps> = ({ plan, prefe
 
         {plan.weeklyMealPlan && Array.isArray(plan.weeklyMealPlan) ? (
           <div>
-            <div className="border-b border-slate-700">
-                <nav className="-mb-px flex space-x-4 md:space-x-6 overflow-x-auto" aria-label="Tabs">
+            <div className="border-b border-slate-700 custom-scrollbar">
+                <nav className="-mb-px flex space-x-2 md:space-x-4 overflow-x-auto" aria-label="Tabs">
                     {plan.weeklyMealPlan.map((day, index) => (
                         <button
                             key={index}
                             onClick={() => setActiveDayIndex(index)}
-                            className={`whitespace-nowrap shrink-0 px-3 md:px-4 py-3 font-medium text-sm md:text-base transition-colors focus:outline-none ${
+                            className={`whitespace-nowrap shrink-0 px-3 md:px-4 py-3 font-medium text-sm md:text-base rounded-t-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 ring-offset-2 ring-offset-slate-900 ${
                                 index === activeDayIndex
-                                    ? 'border-b-2 border-indigo-400 text-indigo-300'
-                                    : 'border-b-2 border-transparent text-slate-400 hover:text-white hover:border-slate-500'
+                                    ? 'border-b-2 border-indigo-400 text-white bg-slate-800/60'
+                                    : 'border-b-2 border-transparent text-slate-400 hover:text-white hover:bg-slate-800/30'
                             }`}
                         >
                             {day.day}
@@ -79,7 +80,7 @@ const NutritionPlanDisplay: React.FC<NutritionPlanDisplayProps> = ({ plan, prefe
                       <h3 className="text-xl font-bold text-white">{activeDay.day}</h3>
                       <p className="text-indigo-400 font-semibold">{activeDay.dailyTotalCalories}</p>
                   </div>
-                  <div className="p-5 grid gap-4 md:grid-cols-2">
+                  <div className="p-5 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                     {activeDay.meals.map((meal, index) => (
                         <MealCard key={index} meal={meal} />
                     ))}

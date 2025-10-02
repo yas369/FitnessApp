@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import type { NutritionPreferences } from '../types';
 import GoalIcon from './icons/GoalIcon';
@@ -5,14 +6,15 @@ import DietIcon from './icons/DietIcon';
 import CuisineIcon from './icons/CuisineIcon';
 import MealIcon from './icons/MealIcon';
 import AllergyIcon from './icons/AllergyIcon';
-
+import OfflineIcon from './icons/OfflineIcon';
 
 interface NutritionFormProps {
   onSubmit: (data: NutritionPreferences) => void;
   isLoading: boolean;
+  isOffline: boolean;
 }
 
-const NutritionForm: React.FC<NutritionFormProps> = ({ onSubmit, isLoading }) => {
+const NutritionForm: React.FC<NutritionFormProps> = ({ onSubmit, isLoading, isOffline }) => {
   const [formData, setFormData] = useState<NutritionPreferences>({
     dietaryPreference: 'vegetarian',
     primaryGoal: 'maintenance',
@@ -28,6 +30,7 @@ const NutritionForm: React.FC<NutritionFormProps> = ({ onSubmit, isLoading }) =>
   
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if(isOffline) return;
     onSubmit(formData);
   };
 
@@ -94,8 +97,13 @@ const NutritionForm: React.FC<NutritionFormProps> = ({ onSubmit, isLoading }) =>
         </div>
 
         <div className="pt-4">
-          <button type="submit" disabled={isLoading} className="w-full flex justify-center items-center text-white bg-indigo-600 hover:bg-indigo-700 focus:ring-4 focus:ring-indigo-500/50 font-bold rounded-lg text-lg px-5 py-3.5 text-center disabled:bg-indigo-900 disabled:cursor-not-allowed transition-all duration-300">
-            {isLoading ? 'Generating Meal Plan...' : 'Generate My Meal Plan'}
+          <button type="submit" disabled={isLoading || isOffline} className="w-full flex justify-center items-center text-white bg-indigo-600 hover:bg-indigo-700 focus:ring-4 focus:ring-indigo-500/50 font-bold rounded-lg text-lg px-5 py-3.5 text-center disabled:bg-indigo-800 disabled:cursor-not-allowed transition-all duration-300">
+            {isLoading ? 'Generating Meal Plan...' : isOffline ? (
+                <>
+                  <OfflineIcon className="w-5 h-5 mr-2" />
+                  Offline - Cannot Generate Plan
+                </>
+            ) : 'Generate My Meal Plan'}
           </button>
         </div>
       </form>

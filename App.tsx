@@ -1,6 +1,8 @@
-import React, { useState, useCallback } from 'react';
-import type { UserPreferences, WorkoutPlan } from './types';
-import { generateWorkoutPlan } from './services/geminiService';
+
+import React, { useState, useCallback, useEffect } from 'react';
+import type { UserPreferences, WorkoutPlan, NutritionPreferences, NutritionPlan } from './types';
+import { generateWorkoutPlan, generateNutritionPlan } from './services/geminiService';
+import { savePlan, loadPlan, clearPlan } from './services/cacheService';
 import Header from './components/Header';
 import WorkoutForm from './components/WorkoutForm';
 import WorkoutPlanDisplay from './components/WorkoutPlanDisplay';
@@ -10,22 +12,65 @@ import TechniqueAnalyzer from './components/TechniqueAnalyzer';
 import NutritionGuide from './components/NutritionGuide';
 import BottomNavBar from './components/BottomNavBar';
 import Dashboard from './components/Dashboard';
+import OfflineBanner from './components/OfflineBanner';
+
+const useOfflineStatus = () => {
+    const [isOffline, setIsOffline] = useState(!navigator.onLine);
+
+    useEffect(() => {
+        const handleOffline = () => setIsOffline(true);
+        const handleOnline = () => setIsOffline(false);
+
+        window.addEventListener('offline', handleOffline);
+        window.addEventListener('online', handleOnline);
+
+        return () => {
+            window.removeEventListener('offline', handleOffline);
+            window.removeEventListener('online', handleOnline);
+        };
+    }, []);
+
+    return isOffline;
+};
 
 const App: React.FC = () => {
   const [activeView, setActiveView] = useState<'planner' | 'analyzer' | 'nutrition' | 'dashboard'>('planner');
-  const [preferences, setPreferences] = useState<UserPreferences | null>(null);
+  const [workoutPreferences, setWorkoutPreferences] = useState<UserPreferences | null>(null);
   const [workoutPlan, setWorkoutPlan] = useState<WorkoutPlan | null>(null);
+  const [nutritionPreferences, setNutritionPreferences] = useState<NutritionPreferences | null>(null);
+  const [nutritionPlan, setNutritionPlan] = useState<NutritionPlan | null>(null);
+
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const isOffline = useOfflineStatus();
 
-  const handleFormSubmit = useCallback(async (data: UserPreferences) => {
+  useEffect(() => {
+    // On initial load, try to load cached plans
+    const cachedWorkout = loadPlan<WorkoutPlan>('workoutPlan');
+    const cachedWorkoutPrefs = loadPlan<UserPreferences>('workoutPreferences');
+    if (cachedWorkout && cachedWorkoutPrefs) {
+      setWorkoutPlan(cachedWorkout);
+      setWorkoutPreferences(cachedWorkoutPrefs);
+    }
+    
+    const cachedNutrition = loadPlan<NutritionPlan>('nutritionPlan');
+    const cachedNutritionPrefs = loadPlan<NutritionPreferences>('nutritionPreferences');
+    if (cachedNutrition && cachedNutritionPrefs) {
+      setNutritionPlan(cachedNutrition);
+      setNutritionPreferences(cachedNutritionPrefs);
+    }
+  }, []);
+
+  const handleWorkoutSubmit = useCallback(async (data: UserPreferences) => {
     setIsLoading(true);
     setError(null);
     setWorkoutPlan(null);
     try {
       const plan = await generateWorkoutPlan(data);
-      setPreferences(data);
+      setWorkoutPreferences(data);
       setWorkoutPlan(plan);
+      savePlan('workoutPlan', plan);
+      savePlan('workoutPreferences', data);
     } catch (err) {
       console.error(err);
       setError('Failed to generate workout plan. Please check your API key and try again.');
@@ -33,45 +78,90 @@ const App: React.FC = () => {
       setIsLoading(false);
     }
   }, []);
-
-  const handleReset = useCallback(() => {
-    setWorkoutPlan(null);
-    setPreferences(null);
+  
+  const handleNutritionSubmit = useCallback(async (data: NutritionPreferences) => {
+    setIsLoading(true);
     setError(null);
+    setNutritionPlan(null);
+    try {
+      const plan = await generateNutritionPlan(data);
+      setNutritionPreferences(data);
+      setNutritionPlan(plan);
+      savePlan('nutritionPlan', plan);
+      savePlan('nutritionPreferences', data);
+    } catch (err) {
+      console.error(err);
+      setError('Failed to generate nutrition plan. Please check your API key and try again.');
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
 
-  const renderPlannerContent = () => {
-    if (isLoading) {
-      return <Loader />;
+  const handleWorkoutReset = useCallback(() => {
+    setWorkoutPlan(null);
+    setWorkoutPreferences(null);
+    setError(null);
+    clearPlan('workoutPlan');
+    clearPlan('workoutPreferences');
+  }, []);
+  
+  const handleNutritionReset = useCallback(() => {
+    setNutritionPlan(null);
+    setNutritionPreferences(null);
+    setError(null);
+    clearPlan('nutritionPlan');
+    clearPlan('nutritionPreferences');
+  }, []);
+
+  const renderView = () => {
+    switch(activeView) {
+      case 'planner':
+        if (isLoading) return <Loader />;
+        if (error) return (
+          <div role="alert" className="text-center p-8 bg-red-900/20 border border-red-500 rounded-lg">
+            <p className="text-red-300 text-lg">{error}</p>
+            <button
+              onClick={handleWorkoutReset}
+              className="mt-4 px-6 py-2 bg-indigo-600 hover:bg-indigo-700 rounded-md text-white font-semibold transition-colors"
+            >
+              Try Again
+            </button>
+          </div>
+        );
+        if (workoutPlan && workoutPreferences) {
+          return <WorkoutPlanDisplay plan={workoutPlan} preferences={workoutPreferences} onReset={handleWorkoutReset} />;
+        }
+        return <WorkoutForm onSubmit={handleWorkoutSubmit} isLoading={isLoading} isOffline={isOffline} />;
+      
+      case 'analyzer':
+        return <TechniqueAnalyzer isOffline={isOffline} />;
+      
+      case 'nutrition':
+        return <NutritionGuide 
+          preferences={nutritionPreferences}
+          plan={nutritionPlan}
+          isLoading={isLoading}
+          error={error}
+          isOffline={isOffline}
+          onSubmit={handleNutritionSubmit}
+          onReset={handleNutritionReset}
+        />;
+
+      case 'dashboard':
+        return <Dashboard isOffline={isOffline} />;
+        
+      default:
+        return null;
     }
-    if (error) {
-      return (
-        <div role="alert" className="text-center p-8 bg-red-900/20 border border-red-500 rounded-lg">
-          <p className="text-red-300 text-lg">{error}</p>
-          <button
-            onClick={handleReset}
-            className="mt-4 px-6 py-2 bg-indigo-600 hover:bg-indigo-700 rounded-md text-white font-semibold transition-colors"
-          >
-            Try Again
-          </button>
-        </div>
-      );
-    }
-    if (workoutPlan && preferences) {
-      return <WorkoutPlanDisplay plan={workoutPlan} preferences={preferences} onReset={handleReset} />;
-    }
-    return <WorkoutForm onSubmit={handleFormSubmit} isLoading={isLoading} />;
-  };
+  }
 
   return (
-    <div className="min-h-screen bg-slate-900 flex flex-col">
+    <div className="min-h-screen flex flex-col">
       <Header />
       <main className="flex-grow container mx-auto px-4 py-8 md:py-12 pb-32">
+        <OfflineBanner isOffline={isOffline} />
         <div key={activeView} className="animate-view-change">
-          {activeView === 'planner' && renderPlannerContent()}
-          {activeView === 'analyzer' && <TechniqueAnalyzer />}
-          {activeView === 'nutrition' && <NutritionGuide />}
-          {activeView === 'dashboard' && <Dashboard />}
+          {renderView()}
         </div>
       </main>
       <Footer />

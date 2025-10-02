@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import type { WorkoutPlan, UserPreferences, Exercise } from '../types';
 import DumbbellIcon from './icons/DumbbellIcon';
@@ -56,16 +57,16 @@ const WorkoutPlanDisplay: React.FC<WorkoutPlanDisplayProps> = ({ plan, preferenc
 
         {plan.weeklySchedule && Array.isArray(plan.weeklySchedule) ? (
           <div>
-            <div className="border-b border-slate-700">
-                <nav className="-mb-px flex space-x-4 md:space-x-6 overflow-x-auto" aria-label="Tabs">
+            <div className="border-b border-slate-700 custom-scrollbar">
+                <nav className="-mb-px flex space-x-2 md:space-x-4 overflow-x-auto" aria-label="Tabs">
                     {plan.weeklySchedule.map((day, index) => (
                         <button
                             key={index}
                             onClick={() => setActiveDayIndex(index)}
-                            className={`whitespace-nowrap shrink-0 px-3 md:px-4 py-3 font-medium text-sm md:text-base transition-colors focus:outline-none ${
+                            className={`whitespace-nowrap shrink-0 px-3 md:px-4 py-3 font-medium text-sm md:text-base rounded-t-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 ring-offset-2 ring-offset-slate-900 ${
                                 index === activeDayIndex
-                                    ? 'border-b-2 border-indigo-400 text-indigo-300'
-                                    : 'border-b-2 border-transparent text-slate-400 hover:text-white hover:border-slate-500'
+                                    ? 'border-b-2 border-indigo-400 text-white bg-slate-800/60'
+                                    : 'border-b-2 border-transparent text-slate-400 hover:text-white hover:bg-slate-800/30'
                             }`}
                             aria-current={index === activeDayIndex ? 'page' : undefined}
                         >
@@ -88,26 +89,28 @@ const WorkoutPlanDisplay: React.FC<WorkoutPlanDisplayProps> = ({ plan, preferenc
                       <button 
                           key={exIndex} 
                           onClick={() => handleExerciseClick(exercise)}
-                          className="w-full text-left bg-slate-700/40 p-4 rounded-lg hover:bg-slate-700/70 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="w-full text-left bg-slate-700/40 p-4 rounded-lg ring-2 ring-transparent hover:ring-indigo-500 hover:bg-slate-700/70 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:ring-transparent"
                           disabled={!exercise.videoQuery || exercise.videoQuery.toLowerCase() === 'n/a' || exercise.videoQuery.trim() === ''}
                           aria-label={`View video demonstration for ${exercise.name}`}
                           >
                           <div className="flex items-start justify-between">
                               <p className="font-semibold text-white flex-grow pr-2">{exercise.name}</p>
                               {exercise.videoQuery && exercise.videoQuery.toLowerCase() !== 'n/a' && exercise.videoQuery.trim() !== '' && (
-                              <VideoIcon className="w-5 h-5 text-indigo-400 flex-shrink-0 mt-0.5" />
+                                <div className="bg-indigo-500/20 p-1.5 rounded-full">
+                                  <VideoIcon className="w-5 h-5 text-indigo-300 flex-shrink-0" />
+                                </div>
                               )}
                           </div>
-                          <div className="flex items-center justify-between text-sm mt-2 text-slate-300">
-                              <span><DumbbellIcon className="inline w-4 h-4 mr-1 text-slate-400"/> {exercise.sets} sets x {exercise.reps} reps</span>
-                              <span><TargetIcon className="inline w-4 h-4 mr-1 text-slate-400" /> {exercise.rest} rest</span>
+                          <div className="flex items-center space-x-6 text-sm mt-2 text-slate-300">
+                              <span><DumbbellIcon className="inline w-4 h-4 mr-1.5 text-slate-400"/> {exercise.sets} sets x {exercise.reps} reps</span>
+                              <span><TargetIcon className="inline w-4 h-4 mr-1.5 text-slate-400" /> {exercise.rest} rest</span>
                           </div>
                           {exercise.note && <p className="text-xs mt-2 text-slate-400 italic">Note: {exercise.note}</p>}
                           </button>
                       ))
                   ) : (
                       <div className="flex flex-col items-center justify-center text-center h-full text-slate-400 py-10 px-4">
-                        <RestDayIcon className="w-48 h-48 text-indigo-400/50" />
+                        <RestDayIcon className="w-32 h-32 md:w-48 md:h-48 text-indigo-400/30" />
                         <h4 className="text-2xl font-bold text-white mt-4">Rest & Recovery</h4>
                         <p className="mt-2 max-w-xs mx-auto">Your muscles grow when you rest. Enjoy your day off and come back stronger!</p>
                       </div>
