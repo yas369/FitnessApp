@@ -1,0 +1,7 @@
+{
+  "name": "AI Fitness Coach",
+  "description": "An AI-powered fitness platform providing personalized workout plans, technique analysis, and performance tracking tailored for Indian fitness enthusiasts and athletes. It generates custom training programs based on user goals, equipment, and health conditions.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
