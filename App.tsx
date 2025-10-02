@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useEffect } from 'react';
 import type { UserPreferences, WorkoutPlan, NutritionPreferences, NutritionPlan } from './types';
 import { generateWorkoutPlan, generateNutritionPlan } from './services/geminiService';
@@ -13,6 +12,7 @@ import NutritionGuide from './components/NutritionGuide';
 import BottomNavBar from './components/BottomNavBar';
 import Dashboard from './components/Dashboard';
 import OfflineBanner from './components/OfflineBanner';
+import InstallPWA from './components/InstallPWA';
 
 const useOfflineStatus = () => {
     const [isOffline, setIsOffline] = useState(!navigator.onLine);
@@ -165,6 +165,7 @@ const App: React.FC = () => {
         </div>
       </main>
       <Footer />
+      <InstallPWA />
       <BottomNavBar activeView={activeView} onNavigate={setActiveView} />
       <style>{`
           @keyframes view-change-fade-in {
