@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import type { UserPreferences } from '../types';
 import LevelIcon from './icons/LevelIcon';
@@ -9,6 +8,7 @@ import ClockIcon from './icons/ClockIcon';
 import HealthIcon from './icons/HealthIcon';
 import EquipmentIcon from './icons/EquipmentIcon';
 import OfflineIcon from './icons/OfflineIcon';
+import { triggerHapticFeedback } from '../services/hapticService';
 
 interface WorkoutFormProps {
   onSubmit: (data: UserPreferences) => void;
@@ -41,6 +41,7 @@ const WorkoutForm: React.FC<WorkoutFormProps> = ({ onSubmit, isLoading, isOfflin
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if(isOffline) return;
+    triggerHapticFeedback();
     onSubmit(formData);
   };
 

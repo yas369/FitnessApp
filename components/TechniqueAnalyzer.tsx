@@ -1,6 +1,6 @@
-
 import React, { useState, useRef, useCallback } from 'react';
 import { analyzeExerciseTechnique } from '../services/geminiService';
+import { triggerHapticFeedback } from '../services/hapticService';
 import CameraIcon from './icons/CameraIcon';
 import SparklesIcon from './icons/SparklesIcon';
 import OfflineIcon from './icons/OfflineIcon';
@@ -38,6 +38,7 @@ const TechniqueAnalyzer: React.FC<TechniqueAnalyzerProps> = ({ isOffline }) => {
   }, []);
 
   const handleStartCamera = useCallback(async () => {
+    triggerHapticFeedback();
     setError(null);
     if (isCameraOn) {
       stopCamera();
@@ -91,27 +92,32 @@ const TechniqueAnalyzer: React.FC<TechniqueAnalyzerProps> = ({ isOffline }) => {
         const dataUrl = canvas.toDataURL('image/jpeg');
         setCapturedImage(dataUrl);
         stopCamera();
+        triggerHapticFeedback(50);
       }
     }
   }, [stopCamera]);
 
   const handleAnalyze = async () => {
     if (!capturedImage) return;
+    triggerHapticFeedback();
     setIsLoading(true);
     setError(null);
     setAnalysis(null);
     try {
       const result = await analyzeExerciseTechnique(capturedImage, selectedExercise);
       setAnalysis(result);
+      triggerHapticFeedback([100, 30, 100]); // Success feedback
     } catch (err) {
       console.error(err);
       setError("Failed to analyze technique. The AI model could not be reached.");
+      triggerHapticFeedback([50, 50]); // Error feedback
     } finally {
       setIsLoading(false);
     }
   };
 
   const reset = () => {
+    triggerHapticFeedback();
     stopCamera();
     setCapturedImage(null);
     setAnalysis(null);
@@ -171,7 +177,7 @@ const TechniqueAnalyzer: React.FC<TechniqueAnalyzerProps> = ({ isOffline }) => {
             <div className="flex flex-col items-center space-y-4">
                 <img src={capturedImage} alt={`Still image of your ${EXERCISES.find(e => e.key === selectedExercise)?.label || 'exercise'} form, ready for analysis.`} className="rounded-lg max-w-full md:max-w-md shadow-lg" />
                 <div className="flex space-x-4">
-                    <button onClick={() => setCapturedImage(null)} className="px-6 py-2 bg-slate-600 hover:bg-slate-700 rounded-md text-white font-semibold transition-colors">
+                    <button onClick={() => { triggerHapticFeedback(); setCapturedImage(null); }} className="px-6 py-2 bg-slate-600 hover:bg-slate-700 rounded-md text-white font-semibold transition-colors">
                         Retake
                     </button>
                     <button onClick={handleAnalyze} className="flex items-center space-x-2 px-6 py-2 bg-indigo-600 hover:bg-indigo-700 rounded-md text-white font-semibold transition-colors">

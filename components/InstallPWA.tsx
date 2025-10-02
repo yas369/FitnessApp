@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import InstallIcon from './icons/InstallIcon';
 import CloseIcon from './icons/CloseIcon';
 import ShareIcon from './icons/ShareIcon';
+import { triggerHapticFeedback } from '../services/hapticService';
 
 const InstallPWA: React.FC = () => {
   const [installPrompt, setInstallPrompt] = useState<any>(null);
@@ -41,6 +42,7 @@ const InstallPWA: React.FC = () => {
 
   const handleInstallClick = () => {
     if (!installPrompt) return;
+    triggerHapticFeedback();
     installPrompt.prompt();
     installPrompt.userChoice.then(() => {
       setInstallPrompt(null);
@@ -49,6 +51,7 @@ const InstallPWA: React.FC = () => {
   };
 
   const handleDismiss = () => {
+    triggerHapticFeedback(30);
     setIsVisible(false);
     // Remember dismissal for a week
     localStorage.setItem('pwaInstallDismissed', 'true');

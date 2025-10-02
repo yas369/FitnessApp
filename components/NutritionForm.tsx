@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import type { NutritionPreferences } from '../types';
 import GoalIcon from './icons/GoalIcon';
@@ -7,6 +6,7 @@ import CuisineIcon from './icons/CuisineIcon';
 import MealIcon from './icons/MealIcon';
 import AllergyIcon from './icons/AllergyIcon';
 import OfflineIcon from './icons/OfflineIcon';
+import { triggerHapticFeedback } from '../services/hapticService';
 
 interface NutritionFormProps {
   onSubmit: (data: NutritionPreferences) => void;
@@ -31,6 +31,7 @@ const NutritionForm: React.FC<NutritionFormProps> = ({ onSubmit, isLoading, isOf
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if(isOffline) return;
+    triggerHapticFeedback();
     onSubmit(formData);
   };
 

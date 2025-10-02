@@ -1,9 +1,9 @@
-
 import React from 'react';
 import DumbbellIcon from './icons/DumbbellIcon';
 import CameraIcon from './icons/CameraIcon';
 import NutritionIcon from './icons/NutritionIcon';
 import DashboardIcon from './icons/DashboardIcon';
+import { triggerHapticFeedback } from '../services/hapticService';
 
 type ActiveView = 'planner' | 'analyzer' | 'nutrition' | 'dashboard';
 
@@ -29,7 +29,10 @@ const BottomNavBar: React.FC<BottomNavBarProps> = ({ activeView, onNavigate }) =
           return (
             <button
               key={item.view}
-              onClick={() => onNavigate(item.view)}
+              onClick={() => {
+                triggerHapticFeedback(30);
+                onNavigate(item.view);
+              }}
               className={`relative flex flex-col items-center justify-center w-full py-2 text-sm font-medium rounded-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 ring-offset-2 ring-offset-slate-800 ${
                 isActive ? 'text-indigo-300' : 'text-slate-400 hover:text-white'
               }`}

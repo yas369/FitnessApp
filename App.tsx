@@ -2,6 +2,7 @@ import React, { useState, useCallback, useEffect } from 'react';
 import type { UserPreferences, WorkoutPlan, NutritionPreferences, NutritionPlan } from './types';
 import { generateWorkoutPlan, generateNutritionPlan } from './services/geminiService';
 import { savePlan, loadPlan, clearPlan } from './services/cacheService';
+import { triggerHapticFeedback } from './services/hapticService';
 import Header from './components/Header';
 import WorkoutForm from './components/WorkoutForm';
 import WorkoutPlanDisplay from './components/WorkoutPlanDisplay';
@@ -71,9 +72,11 @@ const App: React.FC = () => {
       setWorkoutPlan(plan);
       savePlan('workoutPlan', plan);
       savePlan('workoutPreferences', data);
+      triggerHapticFeedback([100, 30, 100]); // Success feedback
     } catch (err) {
       console.error(err);
       setError('Failed to generate workout plan. Please check your API key and try again.');
+      triggerHapticFeedback([50, 50]); // Error feedback
     } finally {
       setIsLoading(false);
     }
@@ -89,9 +92,11 @@ const App: React.FC = () => {
       setNutritionPlan(plan);
       savePlan('nutritionPlan', plan);
       savePlan('nutritionPreferences', data);
+      triggerHapticFeedback([100, 30, 100]); // Success feedback
     } catch (err) {
       console.error(err);
       setError('Failed to generate nutrition plan. Please check your API key and try again.');
+      triggerHapticFeedback([50, 50]); // Error feedback
     } finally {
       setIsLoading(false);
     }
